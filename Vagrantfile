@@ -32,9 +32,6 @@ Vagrant.configure("2") do |config|
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
-  Vagrant.configure("2") do |config|
-    config.vm.network "private_network", ip: "192.168.1.34"
-  end
 
   # Create a public network, which generally matched to bridged network.
   # Bridged networks make the machine appear as another physical device on
@@ -61,16 +58,19 @@ Vagrant.configure("2") do |config|
   #
   # View the documentation for the provider you are using for more
   # information on available options.
-  config.vm.provider "libvirt" do |v|
-    v.memory = 4096
-    v.cpus = 2
+  config.vm.define "arselinux-dev" do |config|
+  config.vm.hostname = "arselinux-dev"
+  config.vm.provider :libvirt do |v|
+    v.memory = 16096
+    v.cpus = 8
+  end
   end
 
   # Enable provisioning with a shell script. Additional provisioners such as
   # Ansible, Chef, Docker, Puppet and Salt are also available. Please see the
   # documentation for more information about their specific syntax and use.
-  # config.vm.provision "shell", inline: <<-SHELL
-  #   apt-get update
-  #   apt-get install -y apache2
-  # SHELL
+  config.vm.provision "shell", inline: <<-SHELL
+    pacman -Syu
+    pacman -S --noconfirm git vim reflector archiso mkinitcpio-archiso
+  SHELL
 end
