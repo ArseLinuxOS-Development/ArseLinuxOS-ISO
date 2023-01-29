@@ -1,1 +1,1 @@
-mkarchiso -v -w /archiso-tmp -o ../ /ArseLinuxOS-ISO/.
+mkarchiso -v -w /archiso-tmp -o ../ /root/ArseLinuxOS-ISO/.

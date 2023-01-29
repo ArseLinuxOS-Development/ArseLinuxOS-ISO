@@ -1,17 +1,9 @@
 version: '3'
-
-
 services:
-
-
   arselinux-build:
     container_name: arselinux-build
-    image: 'arselinux-build:latest'
+    image: 'arselinux:latest'
     restart: unless-stopped
-    command: >
-      sh -c "pacman -Sy &&
-             pacman -S --noconfirm git reflector archiso mkinitcpio-archiso
-             git clone https://github.com/LiamAEdwards/ArseLinuxOS-ISO.git"
+    privileged: true
     volumes:
       - /home/ledwards/arselinux:/root
-
