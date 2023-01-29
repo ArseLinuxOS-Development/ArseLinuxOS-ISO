@@ -1,3 +1,3 @@
 #!/bin/sh
-[ -f ~/.xprofile ] && . ~/.xprofile && dbus-launch xfce4-session
+[ -f ~/.xprofile ] && . ~/.xprofile && dbus-launch startxfce4
 
