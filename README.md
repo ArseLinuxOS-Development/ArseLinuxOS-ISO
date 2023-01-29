@@ -11,11 +11,7 @@ As you can imagine, this project is for fun and isn't meant to be used for anyth
 
 # Development
 
-<<<<<<< HEAD
 I use docker to make the development process more streamlined. 
-=======
-I use docker to make the development process more streamlined.
->>>>>>> 1953f6d63748c7c610154c33522be7b9900038fd
 
 To get involved
 
@@ -34,11 +30,7 @@ git clone https://github.com/LiamAEdwards/ArseLinuxOS-ISO.git && cd ArseLinuxOS-
 mkarchiso -v -w /archiso-tmp -o ../ .
 ```
 
-<<<<<<< HEAD
 Once completed you will have an ISO image. 
-=======
-Once completed you will have an ISO image.
->>>>>>> 1953f6d63748c7c610154c33522be7b9900038fd
 
 
 # TODO
