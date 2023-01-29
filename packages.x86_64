@@ -120,6 +120,7 @@ wpa_supplicant
 wvdial
 xfsprogs
 xl2tpd
+xterm
 zsh
 
 ## X system
@@ -141,6 +142,7 @@ xorg-xrandr
 ## Display manager
 accountsservice
 lightdm-slick-greeter
+lightdm
 
 ## Desktop environment
 libwnck3
@@ -148,6 +150,7 @@ network-manager-applet
 thunar-archive-plugin
 thunar-media-tags-plugin
 xfce4
+xfce4-goodies
 xfce4-battery-plugin
 xfce4-datetime-plugin
 xfce4-mount-plugin

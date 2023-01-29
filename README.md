@@ -21,7 +21,7 @@ Make any changes, use the `buid-iso.sh` script and test the ISO to make sure cha
 
 
 # TODO
-
+- [ ] - Get a live DE working
 - [ ] - Setup Calamares installer
 - [ ] - Create a logo
 - [ ] - Probably need a custom repo for certain packages (no clue how involved this is)
