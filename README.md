@@ -12,12 +12,26 @@ As you can imagine, this project is for fun and isn't meant to be used for anyth
 
 # Development
 
-I use Vagrant to make spinning up a VM simple and easy.
+I use docker to make the development process more streamlined. 
 
-To start helping out, clone the repository on a VM, if you use Vagrant it should install the packages required. 
-Make any changes, use the `buid-iso.sh` script and test the ISO to make sure changes have taken effect.
+To get involved
 
+```
+docker build --no-cache -t arselinux-build .
+docker volume create arselinux-volume
+docker run -it --privileged=true -v arselinux-volume:/root/ arselinux-build:latest bash
+```
 
+Inside the container you can make your changes, build the ISO and if all looks good, push the changes to Github.
+
+# Building
+
+```
+git clone https://github.com/LiamAEdwards/ArseLinuxOS-ISO.git && cd ArseLinuxOS-ISO
+mkarchiso -v -w /archiso-tmp -o ../ .
+```
+
+Once completed you will have an ISO image. 
 
 
 # TODO
