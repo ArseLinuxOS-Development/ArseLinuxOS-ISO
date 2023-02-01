@@ -21,7 +21,6 @@ With Docker
 docker build -t arselinux-build . --no-cache
 docker run --privileged -it arselinux-build:latest /bin/bash
 ```
-![image](https://user-images.githubusercontent.com/17790730/216143513-b9b610af-9312-4589-89f2-dc212c6eb957.png)
 
 Once completed you will have an ISO image to test/boot. 
 
