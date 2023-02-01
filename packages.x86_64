@@ -70,6 +70,7 @@ mtools
 nano
 nbd
 ndisc6
+neofetch
 nfs-utils
 nilfs-utils
 nmap
@@ -123,8 +124,6 @@ xfsprogs
 xl2tpd
 xterm
 zsh
-
-## X system
 mesa
 mesa-utils
 nvidia-dkms
@@ -139,13 +138,9 @@ xorg-xinit
 xorg-xinput
 xorg-xkill
 xorg-xrandr
-
-## Display manager
 accountsservice
 lightdm-slick-greeter
 lightdm
-
-## Desktop environment
 libwnck3
 network-manager-applet
 thunar-archive-plugin
