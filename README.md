@@ -3,31 +3,11 @@
 [![Maintenance](https://img.shields.io/maintenance/yes/2023.svg)]()
 [![Chat on Matrix](https://matrix.to/img/matrix-badge.svg)](https://app.element.io/#/room/#lounge:matrix.arselinux.org)
 
-This ISO is based on a modified Arch-ISO to provide Installation Environment for ArseLinuxOS.
-
+<img width="175" alt="iStock-1195419985-ai" src="https://user-images.githubusercontent.com/17790730/216143230-86a9d0b7-229a-416d-bf66-a86a80fada1e.png"> 
+This ISO is based on a modified Arch-ISO to provide Installation Environment for ArseLinuxOS. 
 As you can imagine, this project is for fun and isn't meant to be used for anything serious, or rather, anything at all.
 
-```
-  ___                _     _                  
- / _ \              | |   (_)                 
-/ /_\ \_ __ ___  ___| |    _ _ __  _   ___  __
-|  _  | '__/ __|/ _ \ |   | | '_ \| | | \ \/ /
-| | | | |  \__ \  __/ |___| | | | | |_| |>  < 
-\_| |_/_|  |___/\___\_____/_|_| |_|\__,_/_/\_\
 
-⣰⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⠀⠀⠀⠀⠀⢠⣦⠀⠀⠀⠀
-⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⣤⡀⠀⠀⢠⠟⠁⠀⢀⣀⡀
-⣿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⣤⡀⢠⣶⠄⠀⠀⠀⠙⢷⣄⠀⠈⠀⣠⣴⠿⠛⠁
-⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠻⣿⠁⠀⠀⠀⠀⠀⠈⢿⡄⠀⠀⠀⠀⢀⣀⣀         
-⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣇⠀⠀⠀⠀⠀⠀⢸⣷⠀⠀⠀⠈⠉⠛⠛
-⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢈⢽⡂⠀⠀⠀⠀⠀⢸⣿⠀⠀⠀⠀⠀⠀⠀
-⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⣿⠁⠀⠀⠀⠀⢀⣾⠇⠀⠀⠀⠀⠀⠀⠀
-⣿⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⠃⠀⠀⠀⠀⣠⣾⠋⠀⠀⠀⠀⠀⠀⠀⠀
-⣿⡇⠀⠀⠀⠀⠀⠀⠀⢀⣠⣴⣿⣧⣤⣤⣤⣶⠾⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⢿⡇⠀⠀⠀⠸⠿⠿⠟⠛⠉⢹⡇⠀⠀  ⠀⠀⣿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⢸⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀⠀⠀⠀⠀⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠘⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⠑⠀⠀⠀⠀⠀⠀⠒
-```
 
 # Building
 
@@ -41,6 +21,7 @@ With Docker
 docker build -t arselinux-build . --no-cache
 docker run --privileged -it arselinux-build:latest /bin/bash
 ```
+![image](https://user-images.githubusercontent.com/17790730/216143513-b9b610af-9312-4589-89f2-dc212c6eb957.png)
 
 Once completed you will have an ISO image to test/boot. 
 
