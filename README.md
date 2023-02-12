@@ -28,5 +28,5 @@ Once completed you will have an ISO image to test/boot.
 # TODO
 - [ ] - Get a live DE working
 - [ ] - Setup Calamares installer
-- [ ] - Probably need a custom repo for certain packages (no clue how involved this is)
 - [ ] - Create a live environment so users have an immediate look at the distribution.
+- [x] - Probably need a custom repo for certain packages (no clue how involved this is)
