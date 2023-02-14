@@ -1,2 +1,1 @@
-mkarchiso -v -w /archiso-tmp -o /home/USER/ArseLinuxOS-ISO/ /home/USER/ArseLinuxOS-ISO/.
-chown USER:USER ArseLinuxOS-ISO/*.iso
+mkarchiso -v -w /archiso-tmp -o /root/ArseLinuxOS-ISO/ /root/ArseLinuxOS-ISO/.
