@@ -12,7 +12,7 @@ As you can imagine, this project is for fun and isn't meant to be used for anyth
 # Building
 
 ```
-git clone https://github.com/LiamAEdwards/ArseLinuxOS-ISO.git && cd ArseLinuxOS-ISO
+git clone https://github.com/ArseLinuxOS-Development/ArseLinuxOS-ISO.git && cd ArseLinuxOS-ISO
 mkarchiso -v -w /archiso-tmp -o ../ .
 ```
 
