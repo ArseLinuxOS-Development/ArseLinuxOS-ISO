@@ -1,3 +1,6 @@
+### Archiso packages
+##
+#
 alsa-utils
 amd-ucode
 arch-install-scripts
@@ -5,11 +8,9 @@ archinstall
 b43-fwcutter
 base
 bind
-brltty
 broadcom-wl
 btrfs-progs
 clonezilla
-cloud-init
 cryptsetup
 darkhttpd
 ddrescue
@@ -23,7 +24,6 @@ dosfstools
 e2fsprogs
 edk2-shell
 efibootmgr
-espeakup
 ethtool
 exfatprogs
 f2fs-tools
@@ -51,7 +51,6 @@ linux
 linux-atm
 linux-firmware
 linux-firmware-marvell
-livecd-sounds
 lsscsi
 lvm2
 lynx
@@ -69,7 +68,6 @@ mtools
 nano
 nbd
 ndisc6
-neofetch
 nfs-utils
 nilfs-utils
 nmap
@@ -121,23 +119,145 @@ wpa_supplicant
 wvdial
 xfsprogs
 xl2tpd
-xterm
 zsh
-mesa
-mesa-utils
-xf86-input-libinput
+
+### Desktop packages
+##
+## Required or recommended
+acpi
+alsa-firmware
+arandr
+aspell-en
+dmenu
+feh
+gnome-themes-extra
+i3
+intel-media-driver
+libcanberra
+libva-intel-driver
+libva-mesa-driver
+libva-utils
+libva-vdpau-driver
+lightdm-gtk-greeter
+lsb-release
+mesa-vdpau
+mobile-broadband-provider-info
+network-manager-applet
+nss-mdns
+pipewire-alsa
+pipewire-pulse
+rxvt-unicode
+ttf-droid
+ttf-hack
+vdpauinfo
+wireplumber
+xf86-input-evdev
 xf86-video-amdgpu
 xf86-video-ati
-xf86-video-intel
+xf86-video-nouveau
+xf86-video-vesa
+xorg-mkfontscale
 xorg-server
 xorg-xdpyinfo
+xorg-xdriinfo
 xorg-xinit
 xorg-xinput
+xorg-xsetroot
+xterm
+
+## Optional
+jre-openjdk
+#mesa-demos
+mesa-utils
+networkmanager-openconnect
+networkmanager-openvpn
+networkmanager-pptp
+networkmanager-vpnc
+numlockx
+ranger
+wmctrl
+weechat
+xorg-twm
+xorg-xgamma
+xorg-xhost
 xorg-xkill
-xorg-xrandr
-accountsservice
-libwnck3
-network-manager-applet
-thunar-archive-plugin
-thunar-media-tags-plugin
-i3-wm
+xorg-xlsclients
+xorg-xrefresh
+xorg-xvinfo
+xorg-xwininfo
+
+### Browser
+##
+# Recommended
+#chromium
+firefox
+
+### Printing
+##
+# Optional
+cups-pdf cups-pk-helper
+
+### Nvidia graphics driver
+##
+#
+#nvidia nvidia-settings bbswitch
+
+### Office
+##
+# Optional
+#abiword
+gnumeric
+#hunspell-en_US libreoffice-fresh
+#hunspell-en_US libreoffice-still
+
+### Virtualbox guest
+##
+# Optional
+#virtualbox-guest-modules-arch virtualbox-guest-utils
+
+### Vulkan
+##
+# Optional
+amdvlk
+vulkan-intel
+vulkan-mesa-layers
+vulkan-radeon
+vulkan-tools
+
+### Intel graphics driver
+## The Xorg built-in modesetting driver generally performs
+## better than Intel's driver. Use the one which works
+## the best with your hardware (default: not installed)
+#
+#xf86-video-intel
+
+### Additional packages
+##
+# Required
+#
+# Optional
+bash-completion
+binutils
+byobu
+cpio
+cpupower
+fakeroot
+git
+grsync
+hddtemp
+hwinfo
+neofetch
+net-tools
+os-prober
+p7zip
+pacman-contrib
+powertop
+pwgen
+strace
+tree
+unrar
+wget
+whois
+wireguard-tools
+zip
+zsh-autosuggestions
