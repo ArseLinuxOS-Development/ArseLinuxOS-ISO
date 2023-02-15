@@ -144,6 +144,7 @@ libwnck3
 network-manager-applet
 thunar-archive-plugin
 thunar-media-tags-plugin
+i3-wm
 xfce4
 xfce4-goodies
 xfce4-battery-plugin
