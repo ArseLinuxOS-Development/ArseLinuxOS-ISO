@@ -16,10 +16,12 @@ git clone https://github.com/ArseLinuxOS-Development/ArseLinuxOS-ISO.git && cd A
 mkarchiso -v -w /archiso-tmp -o ../ .
 ```
 
-With Docker
+## With Docker
+
+(Edit `docker-compose.yml`) first to add your volume path
 ```
 docker build -t arselinux-build . --no-cache
-docker run --privileged -it arselinux-build:latest /bin/bash
+docker compose up
 ```
 
 Once completed you will have an ISO image to test/boot. 
