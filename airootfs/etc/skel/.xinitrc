@@ -1,3 +1,3 @@
-#!/bin/sh
-[ -f ~/.xprofile ] && . ~/.xprofile && dbus-launch startxfce4
-
+if [[ ! $DISPLAY && $XDG_VTNR -eq 1 ]]; then
+  exec startx
+fi
