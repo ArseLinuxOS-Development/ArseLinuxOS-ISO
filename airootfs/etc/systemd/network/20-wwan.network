@@ -10,6 +10,7 @@ IPv6PrivacyExtensions=yes
 # Explicitly set route metric, so that Ethernet is preferred over Wi-Fi and Wi-Fi is preferred over mobile broadband.
 # Use values from NetworkManager. From nm_device_get_route_metric_default in
 # https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/blob/main/src/core/devices/nm-device.c
+
 [DHCPv4]
 RouteMetric=700
 
