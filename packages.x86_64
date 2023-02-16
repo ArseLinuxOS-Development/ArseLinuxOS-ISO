@@ -192,14 +192,6 @@ xorg-xwininfo
 #chromium
 firefox
 
-### Printing
-##
-# Optional
-cups-pdf cups-pk-helper
-
-### Nvidia graphics driver
-##
-#
 #nvidia nvidia-settings bbswitch
 
 ### Office
