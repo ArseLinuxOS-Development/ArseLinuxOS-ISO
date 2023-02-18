@@ -253,3 +253,6 @@ whois
 wireguard-tools
 zip
 zsh-autosuggestions
+
+# Arse Packages
+arse-hooks
