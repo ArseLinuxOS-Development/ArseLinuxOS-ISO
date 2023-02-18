@@ -33,5 +33,6 @@ Once completed you will have an ISO image to test/boot.
 - [ ] - Setup Calamares installer
 - [ ] - Create a customised live environment so users have an immediate look at the distribution.
 - [ ] - Setup a github action to automatically build ISO with mkarchiso on all branches.
+- [ ] - Need a suitable desktop background
 - [x] - Get a live DE working
 - [x] - Probably need a custom repo for certain packages (no clue how involved this is)
