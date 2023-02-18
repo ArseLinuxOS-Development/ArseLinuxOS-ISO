@@ -3,6 +3,7 @@
 [![Maintenance](https://img.shields.io/maintenance/yes/2023.svg)]()
 [![Chat on Matrix](https://matrix.to/img/matrix-badge.svg)](https://app.element.io/#/room/#development:matrix.arselinux.org)
 
+### A silly bum themed Linux distribution.
 
 This ISO is based on a modified Arch-ISO to provide Installation Environment for ArseLinuxOS. 
 As you can imagine, this project is for fun and isn't meant to be used for anything serious, or rather, anything at all.
