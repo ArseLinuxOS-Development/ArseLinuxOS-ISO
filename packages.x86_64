@@ -132,6 +132,7 @@ dmenu
 feh
 gnome-themes-extra
 i3
+polybar
 intel-media-driver
 libcanberra
 libva-intel-driver
@@ -254,5 +255,8 @@ wireguard-tools
 zip
 zsh-autosuggestions
 
+alacritty
+
 # Arse Packages
 arse-hooks
+arse-desktop
