@@ -25,7 +25,7 @@ fi
 # * live user autologin
 # * Menta theme
 # * background color
-sed -i 's/^#\(autologin-user=\)$/\1live/
+sed -i 's/^#\(autologin-user=\)$/\1root/
         s/^#\(autologin-session=\)$/\1i3/' /etc/lightdm/lightdm.conf
 sed -i 's/^#\(background=\)$/\1#232627/
         s/^#\(theme-name=\)$/\1Adwaita/
@@ -48,11 +48,11 @@ ln -s /usr/lib/systemd/system/lightdm.service /etc/systemd/system/display-manage
 # * groups member
 # * user without password
 # * sudo no password settings
-useradd -m -G 'wheel' -s /bin/zsh live
-sed -i 's/^\(live:\)!:/\1:/' /etc/shadow
-sed -i 's/^#\s\(%wheel\s.*NOPASSWD\)/\1/' /etc/sudoers
+#useradd -m -G 'wheel' -s /bin/zsh live
+#sed -i 's/^\(live:\)!:/\1:/' /etc/shadow
+#sed -i 's/^#\s\(%wheel\s.*NOPASSWD\)/\1/' /etc/sudoers
 
 # Create autologin group
 # add live to autologin group
 groupadd -r autologin
-gpasswd -a live autologin
+gpasswd -a root autologin
