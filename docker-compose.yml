@@ -2,7 +2,7 @@ version: '3'
 services:
   arselinux-build:
     container_name: arselinux-build
-    build: .
+    image: 'arselinux:latest'
     restart: unless-stopped
     privileged: true
     volumes:

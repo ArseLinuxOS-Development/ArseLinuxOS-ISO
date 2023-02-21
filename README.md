@@ -19,9 +19,11 @@ mkarchiso -v -w /archiso-tmp -o ../ .
 ```
 
 ## With Docker
-Execute the following Docker command to build a fresh image each time:
+
+(Edit `docker-compose.yml`) first to add your volume path
 ```
-docker-compose build --force-rm --no-cache && docker-compose up
+docker build -t arselinux-build . --no-cache
+docker compose up
 ```
 
 Once completed you will have an ISO image to test/boot. 
