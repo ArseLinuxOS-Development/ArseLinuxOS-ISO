@@ -6,4 +6,4 @@ services:
     restart: unless-stopped
     privileged: true
     volumes:
-      - /home/USER/ArseLinuxOS-ISO:/root/ArseLinuxOS-ISO
+      - ./:/root/ArseLinuxOS-ISO
