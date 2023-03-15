@@ -10,7 +10,7 @@ As you can imagine, this project is for fun and isn't meant to be used for anyth
 
 ## Features
 - i3-wm with Polybar
-- ZfS on root with ZFS boot manager
+- ZFS on root with ZFS boot manager
 
 # Installing the ISO
 1. Boot the ISO
