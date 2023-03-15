@@ -13,6 +13,7 @@ As you can imagine, this project is for fun and isn't meant to be used for anyth
 - ZFS on root with ZFS boot manager
 
 # Installing the ISO
+Only supports UEFI
 1. Boot the ISO
 2. `chmod +x installer.sh`
 3. `./installer`
