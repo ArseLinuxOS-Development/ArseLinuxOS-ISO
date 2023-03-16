@@ -594,42 +594,28 @@ Server = https://mirror.biocrafting.net/archlinux/archzfs/archzfs/x86_64
 SigLevel = Never
 Server = http://repo.arselinux.org/repo/arselinux/x86_64/
 EOSF
-  pacman -Syu --noconfirm --needed zfs-dkms zfs-utils
-
+  pacman -Syu --noconfirm zfs-dkms zfs-utils
   # Sync clock
   hwclock --systohc
-
   # Generate locale
   locale-gen
   source /etc/locale.conf
-
   # Generate Initramfs
   mkinitcpio -P
-
   # Install ZFSBootMenu and deps
   git clone --depth=1 https://github.com/zbm-dev/zfsbootmenu/ /tmp/zfsbootmenu
-  pacman -S --needed cpanminus kexec-tools fzf util-linux --noconfirm
+  pacman -S cpanminus kexec-tools fzf util-linux --noconfirm
   cd /tmp/zfsbootmenu
   make
   make install
   cpanm --notest --installdeps .
 
-   # Create user
+  # Create user
   zfs create zroot/data/home/${user}
-
-  # Install arse packages
-  pacman -S arse-desktop arse-hooks --noconfirm 
+  useradd -m ${user} -G wheel
+  chown -R ${user}:${user} /home/${user}
   
- 
-
-
 EOF
-
-
-
-pacstrap /mnt i3-wm i3lock rofi polybar xorg xorg-xdm xorg-xinit xorg-fonts ttf-dejavu rsync
-
-
 
 # Set root passwd
 print "Set root password"
@@ -637,11 +623,7 @@ arch-chroot /mnt /bin/passwd
 
 # Set user passwd
 print "Set user password"
-arch-chroot /mnt useradd -m ${user} -G wheel -k /etc/skel
 arch-chroot /mnt /bin/passwd "$user"
-arch-chroot /mnt /bin/chown -R ${user}:${user} /home/${user}
-arch-chroot /mnt /bin/rsync -av /etc/skel/ /home/${user}
-
 
 # Configure sudo
 print "Configure sudo"
@@ -650,6 +632,8 @@ root ALL=(ALL) ALL
 $user ALL=(ALL) ALL
 Defaults rootpw
 EOF
+
+pacstrap /mnt i3-wm i3lock rofi polybar xorg xorg-xdm xorg-xinit xorg-fonts ttf-dejavu rsync
 
 # Configure network
 print "Configure networking"
