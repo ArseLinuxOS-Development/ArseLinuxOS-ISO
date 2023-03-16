@@ -393,7 +393,7 @@ create_system_dataset () {
 create_home_dataset () {
     print "Create home dataset"
     zfs create -o mountpoint=/ -o canmount=off zroot/data
-    zfs create                                 zroot/data/home
+    zfs create zroot/data/home
 }
 
 export_pool () {
@@ -453,14 +453,14 @@ ask "Name of the slash dataset ?"
 name_reply="$REPLY"
 echo "$name_reply" > /tmp/root_dataset
 
-if [[ $install_reply == "Dualboot" ]]
+if [[ $install_reply == "dualboot" ]]
 then
     import_pool
 fi
 
 create_system_dataset "$name_reply"
 
-if [[ $install_reply == "First" ]]
+if [[ $install_reply == "first" ]]
 then
     create_home_dataset
 fi
@@ -614,7 +614,7 @@ EOSF
   zfs create zroot/data/home/${user}
   useradd -m ${user} -G wheel
   chown -R ${user}:${user} /home/${user}
-  
+
 EOF
 
 # Set root passwd
