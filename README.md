@@ -31,7 +31,6 @@ git clone https://github.com/ArseLinuxOS-Development/ArseLinuxOS-ISO.git && cd A
 
 ## With Docker
 
-(Edit `docker-compose.yml`) first to add your volume path
 ```
 docker build -t arselinux-build . --no-cache
 docker compose up
