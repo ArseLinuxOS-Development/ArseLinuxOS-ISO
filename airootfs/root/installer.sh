@@ -2,6 +2,7 @@
 # Thanks to CalimeroTeknik on #archlinux-fr, FFY00 on #archlinux-projects, JohnDoe2 on #regex
 # Thanks to original author of this script eoli3n - https://github.com/eoli3n/arch-config/tree/master/scripts/zfs/install
 
+# Uncomment for debugging
 set -x
 
 exec &> >(tee "debug.log")
@@ -9,6 +10,13 @@ exec &> >(tee "debug.log")
 ### Vars
 
 verbose=0
+read -r -p "> ZFS passphrase: " -s pass
+read -r -p 'Please enter hostname : ' hostname
+read -r -p "Enter your keymap: " keymap
+read -r -p "Enter your locale: " locale
+### Configure username
+print 'Set your username'
+read -r -p "Username: " user
 
 ### Functions
 usage () {
@@ -335,8 +343,6 @@ partition () {
 zfs_passphrase () {
     # Generate key
     print "Set ZFS passphrase"
-    read -r -p "> ZFS passphrase: " -s pass
-    echo
     echo "$pass" > /etc/zfs/zroot.key
     chmod 000 /etc/zfs/zroot.key
 }
@@ -524,7 +530,6 @@ print "Generate fstab excluding ZFS entries"
 genfstab -U /mnt | grep -v "zroot" | tr -s '\n' | sed 's/\/mnt//'  > /mnt/etc/fstab
 
 # Set hostname
-read -r -p 'Please enter hostname : ' hostname
 echo "$hostname" > /mnt/etc/hostname
 
 # Configure /etc/hosts
@@ -538,9 +543,7 @@ EOF
 # Prepare locales and keymap
 
 print "Prepare locales and keymap"
-read -r -p "Enter your keymap: " keymap
 echo "KEYMAP=$keymap" > /mnt/etc/vconsole.conf
-read -r -p "Enter your locale: " locale
 echo "$locale" >> /mnt/etc/locale.gen
 echo "LANG=$locale" >> /mnt/etc/locale.conf
 
@@ -568,10 +571,6 @@ cp /etc/zfs/zroot.key /mnt/etc/zfs
 
 # Chroot and configure
 print "Chroot and configure system"
-
-### Configure username
-print 'Set your username'
-read -r -p "Username: " user
 
 arch-chroot /mnt /bin/bash -xe <<EOF
 
