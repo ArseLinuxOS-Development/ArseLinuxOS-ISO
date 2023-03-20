@@ -611,7 +611,7 @@ EOSF
   cpanm --notest --installdeps .
 
   # Create user
-  zfs create zroot/data/home/${user}
+  #zfs create zroot/data/home
   useradd -m ${user} -G wheel
   chown -R ${user}:${user} /home/${user}
 
@@ -633,7 +633,8 @@ $user ALL=(ALL) ALL
 Defaults rootpw
 EOF
 
-pacstrap /mnt i3-wm i3lock rofi polybar xorg xorg-xdm xorg-xinit xorg-fonts ttf-dejavu rsync
+pacstrap /mnt i3-wm i3lock rofi polybar xorg xorg-xdm xorg-xinit xorg-fonts ttf-dejavu rsync alacritty python-pip arse-hooks picom python-pywal
+arch-chroot /mnt /bin/pip install --no-input hyfetch
 
 # Configure network
 print "Configure networking"
