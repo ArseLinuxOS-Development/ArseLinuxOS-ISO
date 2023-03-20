@@ -3,20 +3,31 @@
 # Thanks to original author of this script eoli3n - https://github.com/eoli3n/arch-config/tree/master/scripts/zfs/install
 
 # Uncomment for debugging
-set -x
+#set -x
 
 exec &> >(tee "debug.log")
 
-### Vars
+print () {
+    echo -e "\n\033[1m> $1\033[0m"
+}
 
+print "ArseLinux Installer"
+
+# Set variables at the beginning
 verbose=0
-read -r -p "> ZFS passphrase: " -s pass
-read -r -p 'Please enter hostname : ' hostname
-read -r -p "Enter your keymap: " keymap
-read -r -p "Enter your locale: " locale
-### Configure username
-print 'Set your username'
-read -r -p "Username: " user
+read -r -p '> Please enter hostname : ' HOSTNAME
+read -r -p "> Enter your keymap [uk]:" KEYMAP
+KEYMAP=${KEYMAP:-uk}
+read -r -p "> Enter your locale [en_GB.UTF-8]: " LOCALE
+LOCALE=${LOCALE:-en_GB.UTF-8}
+### Configure username & Password
+read -r -p "> Username: " USER
+read -r -p "> Password: " PASSWORD
+### Set Root Password
+read -r -p "> Root Password: " ROOTPASS
+### Encryption Password
+read -r -p "> ZFS passphrase: " -s PASS
+
 
 ### Functions
 usage () {
@@ -25,10 +36,6 @@ Usage: ${0##*/} [-v]
     -v    increase verbosity
     -h    show this usage
 EOF
-}
-
-print () {
-    echo -e "\n\033[1m> $1\033[0m"
 }
 
 get_running_kernel_version () {
@@ -157,7 +164,7 @@ dkms_init () {
     init_archlinux_archive "$archiso_version" || return 1
 
     print "Download Archlinux Archives package lists and upgrade"
-    pacman -Syyuu --noconfirm >&3 || return 1
+    pacman -Syyuu --needed --noconfirm >&3 || return 1
 
     print "Install base-devel"
     pacman -S --needed --noconfirm base-devel linux-headers git >&3 || return 1
@@ -237,7 +244,7 @@ then
         print "Installing zfs-utils and zfs-linux"
 
         # Install packages
-        if pacman -U "$zfs_utils_url" --noconfirm >&3 && pacman -U "$zfs_linux_package" --noconfirm >&3
+        if pacman -U "$zfs_utils_url" --noconfirm >&3 && pacman -U "$zfs_linux_package" --needed --noconfirm >&3
         then
             zfs=1
         fi
@@ -272,9 +279,9 @@ set -e
 
 exec &> >(tee "configure.log")
 
-print () {
-    echo -e "\n\033[1m> $1\033[0m\n"
-}
+# print () {
+#     echo -e "\n\033[1m> $1\033[0m\n"
+# }
 
 ask () {
     read -p "> $1 " -r
@@ -343,7 +350,7 @@ partition () {
 zfs_passphrase () {
     # Generate key
     print "Set ZFS passphrase"
-    echo "$pass" > /etc/zfs/zroot.key
+    echo "$PASS" > /etc/zfs/zroot.key
     chmod 000 /etc/zfs/zroot.key
 }
 
@@ -455,8 +462,8 @@ then
     create_root_dataset
 fi
 
-ask "Name of the slash dataset ?"
-name_reply="$REPLY"
+read -r -p "Name of the slash dataset [root]:" name_reply
+name_reply=${name_reply:-root}
 echo "$name_reply" > /tmp/root_dataset
 
 if [[ $install_reply == "dualboot" ]]
@@ -485,20 +492,20 @@ set -e
 
 exec &> >(tee "install.log")
 
-# Debug
-if [[ "$1" == "debug" ]]
-then
-    set -x
-    debug=1
-fi
+# # Debug
+# if [[ "$1" == "debug" ]]
+# then
+#     set -x
+#     debug=1
+# fi
 
-print () {
-    echo -e "\n\033[1m> $1\033[0m\n"
-    if [[ -n "$debug" ]]
-    then
-      read -rp "press enter to continue"
-    fi
-}
+# print () {
+#     echo -e "\n\033[1m> $1\033[0m\n"
+#     if [[ -n "$debug" ]]
+#     then
+#       read -rp "press enter to continue"
+#     fi
+# }
 
 # Root dataset
 root_dataset=$(cat /tmp/root_dataset)
@@ -530,22 +537,22 @@ print "Generate fstab excluding ZFS entries"
 genfstab -U /mnt | grep -v "zroot" | tr -s '\n' | sed 's/\/mnt//'  > /mnt/etc/fstab
 
 # Set hostname
-echo "$hostname" > /mnt/etc/hostname
+echo "$HOSTNAME" > /mnt/etc/hostname
 
 # Configure /etc/hosts
 print "Configure hosts file"
 cat > /mnt/etc/hosts <<EOF
 #<ip-address>	<hostname.domain.org>	<hostname>
-127.0.0.1	    localhost   	        $hostname
-::1   		    localhost              	$hostname
+127.0.0.1	    localhost   	        $HOSTNAME
+::1   		    localhost              	$HOSTNAME
 EOF
 
 # Prepare locales and keymap
 
 print "Prepare locales and keymap"
-echo "KEYMAP=$keymap" > /mnt/etc/vconsole.conf
-echo "$locale" >> /mnt/etc/locale.gen
-echo "LANG=$locale" >> /mnt/etc/locale.conf
+echo "KEYMAP=$KEYMAP" > /mnt/etc/vconsole.conf
+echo "$LOCALE" >> /mnt/etc/locale.gen
+echo "LANG=$LOCALE" >> /mnt/etc/locale.conf
 
 # Prepare initramfs
 print "Prepare initramfs"
@@ -611,24 +618,23 @@ EOSF
 
   # Create user
   #zfs create zroot/data/home
-  useradd -m ${user} -G wheel
-  chown -R ${user}:${user} /home/${user}
+  useradd -m ${USER} -G wheel
+  chown -R ${USER}:${USER} /home/${USER}
 
 EOF
 
 # Set root passwd
 print "Set root password"
-arch-chroot /mnt /bin/passwd
-
+echo -e "$ROOTPASS\n$ROOTPASS" | arch-chroot /mnt /bin/passwd
 # Set user passwd
 print "Set user password"
-arch-chroot /mnt /bin/passwd "$user"
+echo "$USER:$PASSWORD" | arch-chroot /mnt /bin/chpasswd
 
 # Configure sudo
 print "Configure sudo"
 cat > /mnt/etc/sudoers <<EOF
 root ALL=(ALL) ALL
-$user ALL=(ALL) ALL
+$USER ALL=(ALL) ALL
 Defaults rootpw
 EOF
 
@@ -726,14 +732,14 @@ Kernel:
 EOF
 
 # Set cmdline
-zfs set org.zfsbootmenu:commandline="rw quiet nowatchdog rd.vconsole.keymap=fr" zroot/ROOT/"$root_dataset"
+zfs set org.zfsbootmenu:commandline="rw quiet nowatchdog rd.vconsole.keymap=$KEYMAP" zroot/ROOT/"$root_dataset"
 
 # Generate ZBM
 print 'Generate zbm'
 arch-chroot /mnt /bin/bash -xe <<"EOF"
 
   # Export locale
-  export LANG="$locale"
+  export LANG="$LOCALE"
 
   # Generate zfsbootmenu
   generate-zbm
