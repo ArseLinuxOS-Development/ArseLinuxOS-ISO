@@ -517,7 +517,21 @@ pacstrap /mnt       \
   iwd               \
   wpa_supplicant    \
   rsync             \
-  arse-desktop
+  arse-desktop      \
+  bat               \
+  exa               \
+  lsd               \
+  dust              \
+  duf               \
+  broot             \
+  fd                \
+  ripgrep           \
+  choose            \
+  sd                \
+  zoxide            \
+  fzf               \
+  mcfly             
+
 
 # Generate fstab excluding ZFS entries
 print "Generate fstab excluding ZFS entries"
