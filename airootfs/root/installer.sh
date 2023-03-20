@@ -517,21 +517,7 @@ pacstrap /mnt       \
   iwd               \
   wpa_supplicant    \
   rsync             \
-  arse-desktop      \
-  bat               \
-  exa               \
-  lsd               \
-  dust              \
-  duf               \
-  broot             \
-  fd                \
-  ripgrep           \
-  choose            \
-  sd                \
-  zoxide            \
-  fzf               \
-  mcfly             
-
+  arse-desktop      
 
 # Generate fstab excluding ZFS entries
 print "Generate fstab excluding ZFS entries"
@@ -647,7 +633,7 @@ $user ALL=(ALL) ALL
 Defaults rootpw
 EOF
 
-pacstrap /mnt i3-wm i3lock rofi polybar xorg xorg-xdm xorg-xinit xorg-fonts ttf-dejavu rsync alacritty python-pip arse-hooks picom python-pywal
+pacstrap /mnt i3-wm i3lock rofi polybar xorg xorg-xdm xorg-xinit xorg-fonts ttf-dejavu rsync alacritty python-pip arse-hooks picom python-pywal bat exa lsd dust duf broot fd ripgrep choose sd zoxide fzf mcfly 
 arch-chroot /mnt /bin/pip install --no-input hyfetch
 
 # Configure network
