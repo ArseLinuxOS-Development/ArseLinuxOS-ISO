@@ -53,7 +53,7 @@ init_archzfs () {
     print "Add archzfs repo"
     
     # Disable Sig check
-    pacman -Syy archlinux-keyring --noconfirm >&3 || return 1
+    pacman -Syy archlinux-keyring --needed --noconfirm >&3 || return 1
     pacman-key --populate archlinux >&3 || return 1
     pacman-key --recv-keys F75D9D76 >&3 || return 1
     pacman-key --lsign-key F75D9D76 >&3 || return 1
@@ -638,7 +638,7 @@ $USER ALL=(ALL) ALL
 Defaults rootpw
 EOF
 
-pacstrap /mnt i3-wm i3lock rofi polybar xorg xorg-xdm xorg-xinit xorg-fonts ttf-dejavu rsync alacritty python-pip arse-hooks picom python-pywal
+pacstrap /mnt i3-wm i3lock rofi polybar xorg xorg-xdm xorg-xinit xorg-fonts ttf-dejavu rsync alacritty python-pip arse-hooks picom python-pywal feh
 arch-chroot /mnt /bin/pip install --no-input hyfetch
 
 # Configure network
