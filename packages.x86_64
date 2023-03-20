@@ -255,8 +255,20 @@ wireguard-tools
 zip
 zsh-autosuggestions
 
+# Additional packages
 alacritty
+exa
+fzf
+bat
+broot
+fd
+ripgrep
+choose
+sd
+zoxide
+mcfly
 
 # Arse Packages
 arse-hooks
 arse-desktop
+
