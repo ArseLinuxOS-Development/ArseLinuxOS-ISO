@@ -5,8 +5,9 @@
 
 ### A silly bum themed Linux distribution.
 
+<img width="960" alt="desktop" src="https://user-images.githubusercontent.com/17790730/226776958-e58477db-2b5b-4f0c-809a-3c27ae49c96c.png">
 
-<img width="960" alt="desktop" src="https://user-images.githubusercontent.com/17790730/226481456-89aa0461-368a-4850-a3d2-6b4402612184.png">
+
 
 This ISO is based on a modified Arch-ISO to provide Installation Environment for ArseLinuxOS. 
 As you can imagine, this project is for fun and isn't meant to be used for anything serious, or rather, anything at all.
