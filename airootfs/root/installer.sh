@@ -22,9 +22,9 @@ read -r -p "> Enter your locale [en_GB.UTF-8]: " LOCALE
 LOCALE=${LOCALE:-en_GB.UTF-8}
 ### Configure username & Password
 read -r -p "> Username: " USER
-read -r -p "> Password: " PASSWORD
+read -r -p "> Password: " -s PASSWORD
 ### Set Root Password
-read -r -p "> Root Password: " ROOTPASS
+read -r -p "> Root Password: " -s ROOTPASS
 ### Encryption Password
 read -r -p "> ZFS passphrase: " -s PASS
 
@@ -551,7 +551,8 @@ EOF
 
 print "Prepare locales and keymap"
 echo "KEYMAP=$KEYMAP" > /mnt/etc/vconsole.conf
-echo "$LOCALE" >> /mnt/etc/locale.gen
+#echo "$LOCALE" >> /mnt/etc/locale.gen
+sed -i "/$LOCALE/s/^#//g" /mnt/etc/locale.gen
 echo "LANG=$LOCALE" >> /mnt/etc/locale.conf
 
 # Prepare initramfs
@@ -638,7 +639,7 @@ $USER ALL=(ALL) ALL
 Defaults rootpw
 EOF
 
-pacstrap /mnt i3-wm i3lock rofi polybar xorg xorg-xdm xorg-xinit xorg-fonts ttf-dejavu rsync alacritty python-pip arse-hooks picom python-pywal feh
+pacstrap /mnt i3-wm i3lock rofi polybar xorg xorg-xdm xorg-xinit xorg-fonts ttf-dejavu rsync alacritty python-pip arse-hooks picom python-pywal feh bat exa lsd dust duf broot fd ripgrep choose sd zoxide fzf mcfly 
 arch-chroot /mnt /bin/pip install --no-input hyfetch
 
 # Configure network

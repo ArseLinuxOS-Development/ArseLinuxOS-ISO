@@ -257,16 +257,19 @@ zsh-autosuggestions
 
 # Additional packages
 alacritty
-exa
-fzf
 bat
 broot
-fd
-ripgrep
 choose
+duf
+dust
+exa
+fd
+fzf
+lsd
+mcfly
+ripgrep
 sd
 zoxide
-mcfly
 
 # Arse Packages
 arse-hooks
