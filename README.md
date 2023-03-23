@@ -16,7 +16,7 @@ As you can imagine, this project is for fun and isn't meant to be used for anyth
 - i3-wm with Polybar
 - ZFS on root with ZFS boot manager
 
-# Installing the ISO
+# Installation
 Only supports UEFI
 1. Boot the ISO
 2. `installer`
