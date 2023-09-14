@@ -1,6 +1,8 @@
 ### Archiso packages
 ##
 #
+linux-lts
+linux-lts-headers
 alsa-utils
 amd-ucode
 arch-install-scripts
@@ -8,7 +10,6 @@ archinstall
 b43-fwcutter
 base
 bind
-broadcom-wl
 btrfs-progs
 clonezilla
 cryptsetup
@@ -84,7 +85,6 @@ partimage
 pcsclite
 ppp
 pptpclient
-pv
 qemu-guest-agent
 refind
 reflector
