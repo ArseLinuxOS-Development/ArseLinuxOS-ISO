@@ -1,7 +1,7 @@
 # ArseLinuxOS
 
 [![Maintenance](https://img.shields.io/maintenance/yes/2023.svg)]()
-[![Chat on Matrix](https://matrix.to/img/matrix-badge.svg)](https://matrix.to/#/#arselinux-dev:envs.net)
+
 
 ### A silly bum themed Linux distribution.
 
