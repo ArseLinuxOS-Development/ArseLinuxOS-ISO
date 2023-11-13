@@ -39,7 +39,3 @@ docker compose up
 
 Once completed you will have an ISO image to test/boot. 
 
-
-# TODO
-- [ ] - Create a customised live environment
-- [ ] - Need a suitable desktop background
