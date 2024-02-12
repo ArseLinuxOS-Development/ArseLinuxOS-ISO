@@ -17,4 +17,4 @@ jobs:
           echo "TAG=$TAG_NAME" >> $GITHUB_ENV
       - name: Check tag
         run: |
-          echo "tag is ${{ env.TAG }}
+          echo "tag is ${{ env.TAG }}"
