@@ -2,9 +2,10 @@ on: workflow_dispatch
 
 jobs:
   github-example-tags:
-    steps:
-      - name: Github Tag Name Example
-        run: |
-          echo "Tag name from GITHUB_REF_NAME: $GITHUB_REF_NAME"
-          echo "Tag name from github.ref_name: ${{ github.ref_name }}"
+    runs-on: ubuntu-latest
+      steps:
+        - name: Github Tag Name Example
+          run: |
+            echo "Tag name from GITHUB_REF_NAME: $GITHUB_REF_NAME"
+            echo "Tag name from github.ref_name: ${{ github.ref_name }}"
           
