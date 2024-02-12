@@ -1,6 +1,6 @@
 # ArseLinuxOS
 
-[![Maintenance](https://img.shields.io/maintenance/yes/2023.svg)]()
+[![Maintenance](https://img.shields.io/maintenance/yes/2024.svg)]()
 
 
 ### A silly bum themed Linux distribution.
