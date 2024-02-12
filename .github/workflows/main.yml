@@ -11,3 +11,6 @@ jobs:
           echo "Tag name from github.ref_name: ${{ github.ref_name }}"
           TAG_NAME=${GITHUB_REF#refs/tags/}
           echo "TAG=$TAG_NAME" >> $GITHUB_ENV
+      - name: Check tag
+        run: |
+          echo "tag is ${{ env.TAG }}
