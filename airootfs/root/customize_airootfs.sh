@@ -16,20 +16,20 @@ sed -i '/^hosts:/ {
         s/\(resolve\)/mdns_minimal \[NOTFOUND=return\] \1/
         s/\(dns\)$/\1 wins/ }' /etc/nsswitch.conf
 
-# Optimus setup
-if grep -q 'optimus' /version; then
-    sed -i 's|^#\(display-setup-script=\)$|\1/etc/lightdm/display_setup.sh|' /etc/lightdm/lightdm.conf
-fi
+# Configure greetd for Sway (Wayland)
+mkdir -p /etc/greetd
+cat > /etc/greetd/config.toml <<'EOF'
+[terminal]
+vt = 1
 
-# Lightdm display-manager
-# * live user autologin
-# * Menta theme
-# * background color
-sed -i 's/^#\(autologin-user=\)$/\1root/
-        s/^#\(autologin-session=\)$/\1i3/' /etc/lightdm/lightdm.conf
-sed -i 's/^#\(background=\)$/\1#232627/
-        s/^#\(theme-name=\)$/\1Adwaita/
-        s/^#\(icon-theme-name=\)$/\1Adwaita/' /etc/lightdm/lightdm-gtk-greeter.conf
+[default_session]
+command = "tuigreet --time --remember --cmd sway"
+user = "greeter"
+
+[initial_session]
+command = "sway"
+user = "root"
+EOF
 
 # Enable service when available
 { [[ -e /usr/lib/systemd/system/avahi-dnsconfd.service       ]] && systemctl enable avahi-dnsconfd.service;
@@ -41,18 +41,10 @@ sed -i 's/^#\(background=\)$/\1#232627/
   [[ -e /usr/lib/systemd/system/winbind.service              ]] && systemctl enable winbind.service;
 } > /dev/null 2>&1
 
-# Set lightdm display-manager
-ln -s /usr/lib/systemd/system/lightdm.service /etc/systemd/system/display-manager.service
-
-# Add live user
-# * groups member
-# * user without password
-# * sudo no password settings
-#useradd -m -G 'wheel' -s /bin/zsh live
-#sed -i 's/^\(live:\)!:/\1:/' /etc/shadow
-#sed -i 's/^#\s\(%wheel\s.*NOPASSWD\)/\1/' /etc/sudoers
+# Set greetd as display-manager
+ln -sf /usr/lib/systemd/system/greetd.service /etc/systemd/system/display-manager.service
 
 # Create autologin group
-# add live to autologin group
-groupadd -r autologin
-gpasswd -a root autologin
+# add root to autologin group for live session
+groupadd -r autologin 2>/dev/null || true
+gpasswd -a root autologin 2>/dev/null || true

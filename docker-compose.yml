@@ -1,9 +1,12 @@
-version: '3'
 services:
   arselinux-build:
     container_name: arselinux-build
     image: 'arselinux-build:latest'
-    restart: unless-stopped
+    build:
+      context: .
+      network: host
+    restart: "no"
     privileged: true
+    network_mode: host
     volumes:
       - ./:/root/ArseLinuxOS-ISO

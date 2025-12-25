@@ -30,7 +30,7 @@ exfatprogs
 f2fs-tools
 fatresize
 fsarchiver
-gnu-netcat
+openbsd-netcat
 gpart
 gpm
 gptfdisk
@@ -48,7 +48,6 @@ less
 lftp
 libfido2
 libusb-compat
-linux-lts
 linux-atm
 linux-firmware
 linux-firmware-marvell
@@ -88,7 +87,6 @@ pptpclient
 qemu-guest-agent
 refind
 reflector
-reiserfsprogs
 rp-pppoe
 rsync
 rxvt-unicode-terminfo
@@ -121,50 +119,43 @@ xfsprogs
 xl2tpd
 zsh
 
-### Desktop packages
+### Desktop packages (Wayland/Sway)
 ##
 ## Required or recommended
 acpi
 alsa-firmware
-arandr
 aspell-en
-dmenu
-feh
 gnome-themes-extra
-i3
-polybar
 intel-media-driver
 libcanberra
 libva-intel-driver
 libva-mesa-driver
 libva-utils
-libva-vdpau-driver
-lightdm-gtk-greeter
 lsb-release
-mesa-vdpau
 mobile-broadband-provider-info
 network-manager-applet
 nss-mdns
 pipewire-alsa
 pipewire-pulse
-rxvt-unicode
 ttf-droid
 ttf-hack
 vdpauinfo
 wireplumber
-xf86-input-evdev
-xf86-video-amdgpu
-xf86-video-ati
-xf86-video-nouveau
-xf86-video-vesa
-xorg-mkfontscale
-xorg-server
-xorg-xdpyinfo
-xorg-xdriinfo
-xorg-xinit
-xorg-xinput
-xorg-xsetroot
-xterm
+
+## Wayland/Sway packages
+sway
+waybar
+swaylock
+swaybg
+swayidle
+wofi
+xorg-xwayland
+wl-clipboard
+grim
+slurp
+mako
+greetd
+greetd-tuigreet
 
 ## Optional
 jre-openjdk
@@ -174,26 +165,14 @@ networkmanager-openconnect
 networkmanager-openvpn
 networkmanager-pptp
 networkmanager-vpnc
-numlockx
 ranger
-wmctrl
 weechat
-xorg-twm
-xorg-xgamma
-xorg-xhost
-xorg-xkill
-xorg-xlsclients
-xorg-xrefresh
-xorg-xvinfo
-xorg-xwininfo
 
 ### Browser
 ##
 # Recommended
 #chromium
 firefox
-
-#nvidia nvidia-settings bbswitch
 
 ### Office
 ##
@@ -211,7 +190,6 @@ gnumeric
 ### Vulkan
 ##
 # Optional
-amdvlk
 vulkan-intel
 vulkan-mesa-layers
 vulkan-radeon
@@ -239,7 +217,7 @@ git
 grsync
 hddtemp
 hwinfo
-neofetch
+fastfetch
 net-tools
 os-prober
 p7zip
@@ -262,7 +240,7 @@ broot
 choose
 duf
 dust
-exa
+eza
 fd
 fzf
 lsd
@@ -275,5 +253,4 @@ zoxide
 arse-hooks
 arse-desktop
 arse-installer
-yay
 

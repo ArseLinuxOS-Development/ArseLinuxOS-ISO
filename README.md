@@ -2,41 +2,51 @@
 
 [![Maintenance](https://img.shields.io/maintenance/yes/2025.svg)]()
 
-
 ### A silly bum themed Linux distribution.
 
 ![Screenshot from 2023-11-13 01-10-11](https://github.com/ArseLinuxOS-Development/ArseLinuxOS-ISO/assets/17790730/1f11b969-d65c-47b2-83f0-5f5f70533aec)
 
-
-
-This ISO is based on a modified Arch-ISO to provide Installation Environment for ArseLinuxOS. 
-As you can imagine, this project is for fun and isn't meant to be used for anything serious, or rather, anything at all.
+Based on Arch Linux with a modified archiso. This project is for fun and isn't meant to be used for anything serious.
 
 ## Features
+
 - i3-wm with Polybar
-- ZFS on root with ZFS boot manager
+- ZFS on root with encryption
+- ZFSBootMenu bootloader
+- TUI installer
 
-# Installation
-Only supports UEFI
+## Installation
+
+Requires UEFI.
+
 1. Boot the ISO
-2. `installer`
+2. Run `installer`
+3. Follow the prompts
+4. Reboot
 
+## Package Repository
 
-# Development
+Custom packages are available from the [ArseLinux repo](https://github.com/ArseLinuxOS-Development/arselinux-repo).
 
-## Building
+Add to `/etc/pacman.conf`:
 
+```ini
+[arse-repo]
+SigLevel = Never
+Server = https://github.com/ArseLinuxOS-Development/arselinux-repo/releases/download/arselinux
 ```
-git clone https://github.com/ArseLinuxOS-Development/ArseLinuxOS-ISO.git && cd ArseLinuxOS-ISO
+
+## Building the ISO
+
+```bash
+git clone https://github.com/ArseLinuxOS-Development/ArseLinuxOS-ISO.git
+cd ArseLinuxOS-ISO
 ./build
 ```
 
-## With Docker
+Or with Docker:
 
-```
+```bash
 docker build -t arselinux-build . --no-cache
 docker compose up
 ```
-
-Once completed you will have an ISO image to test/boot. 
-

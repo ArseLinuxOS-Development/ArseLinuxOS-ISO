@@ -1,6 +1,7 @@
 FROM archlinux:latest
-RUN pacman -Sy --noconfirm
-RUN pacman -Syu --noconfirm git reflector archiso mkinitcpio-archiso rsync
-RUN reflector --verbose --latest 10 --sort rate --save /etc/pacman.d/mirrorlist
-RUN git clone https://github.com/ArseLinuxOS-Development/ArseLinuxOS-ISO.git
+
+RUN pacman -Sy --noconfirm && \
+    pacman -S --noconfirm --needed git archiso mkinitcpio-archiso rsync grub
+
+WORKDIR /root
 ENTRYPOINT ["/bin/bash", "/root/ArseLinuxOS-ISO/build.sh"]

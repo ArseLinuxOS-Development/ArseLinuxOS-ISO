@@ -1,0 +1,844 @@
+#!/bin/bash
+#
+# ArseLinux Installer
+# ZFS-based Arch Linux installation with encryption
+#
+# Credits: eoli3n, CalimeroTeknik, FFY00, JohnDoe2
+
+set -euo pipefail
+
+# Colours
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+# Logging
+LOGFILE="/tmp/arselinux-install.log"
+exec > >(tee -a "$LOGFILE") 2>&1
+
+# Globals
+DISK=""
+HOSTNAME=""
+KEYMAP="us"
+LOCALE="en_US.UTF-8"
+USERNAME=""
+PASSWORD=""
+ROOTPASS=""
+ZFSPASS=""
+ROOT_DATASET="root"
+INSTALL_TYPE="first"
+
+cleanup() {
+    local exit_code=$?
+    if [[ $exit_code -ne 0 ]]; then
+        msg error "Installation failed. Check $LOGFILE for details."
+        # Try to clean up mounts
+        umount -R /mnt 2>/dev/null || true
+        zpool export zroot 2>/dev/null || true
+    fi
+    exit $exit_code
+}
+trap cleanup EXIT
+
+msg() {
+    local type="$1"
+    shift
+    case "$type" in
+        info)    echo -e "${BLUE}::${NC} $*" ;;
+        ok)      echo -e "${GREEN}✓${NC} $*" ;;
+        warn)    echo -e "${YELLOW}!${NC} $*" ;;
+        error)   echo -e "${RED}✗${NC} $*" >&2 ;;
+        header)  echo -e "\n${BOLD}${BLUE}━━━ $* ━━━${NC}\n" ;;
+    esac
+}
+
+die() {
+    msg error "$@"
+    exit 1
+}
+
+check_root() {
+    [[ $EUID -eq 0 ]] || die "Run this as root"
+}
+
+check_archiso() {
+    grep -q 'arch.*iso' /proc/cmdline || die "This must be run from the Arch ISO"
+}
+
+check_uefi() {
+    [[ -d /sys/firmware/efi/efivars ]] || die "UEFI boot required"
+}
+
+check_network() {
+    ping -c1 -W2 archlinux.org &>/dev/null || die "No network connection"
+}
+
+# TUI helpers - falls back to basic prompts if whiptail unavailable
+has_tui() {
+    command -v whiptail &>/dev/null
+}
+
+tui_msg() {
+    local title="$1" text="$2"
+    if has_tui; then
+        whiptail --title "$title" --msgbox "$text" 10 60
+    else
+        msg info "$text"
+    fi
+}
+
+tui_yesno() {
+    local title="$1" text="$2"
+    if has_tui; then
+        whiptail --title "$title" --yesno "$text" 10 60
+    else
+        read -rp "$text [y/N] " reply
+        [[ "$reply" =~ ^[Yy] ]]
+    fi
+}
+
+tui_input() {
+    local title="$1" text="$2" default="${3:-}"
+    if has_tui; then
+        whiptail --title "$title" --inputbox "$text" 10 60 "$default" 3>&1 1>&2 2>&3
+    else
+        read -rp "$text [$default]: " reply
+        echo "${reply:-$default}"
+    fi
+}
+
+tui_password() {
+    local title="$1" text="$2"
+    if has_tui; then
+        whiptail --title "$title" --passwordbox "$text" 10 60 3>&1 1>&2 2>&3
+    else
+        read -rsp "$text: " reply
+        echo "$reply"
+    fi
+}
+
+tui_menu() {
+    local title="$1" text="$2"
+    shift 2
+    if has_tui; then
+        whiptail --title "$title" --menu "$text" 20 60 10 "$@" 3>&1 1>&2 2>&3
+    else
+        PS3="$text "
+        select opt in "$@"; do
+            echo "$opt"
+            break
+        done
+    fi
+}
+
+tui_disk_menu() {
+    local title="$1" text="$2"
+    local -a menu_items=()
+
+    while IFS= read -r disk; do
+        local size
+        size=$(lsblk -dno SIZE "/dev/disk/by-id/$disk" 2>/dev/null || echo "???")
+        menu_items+=("$disk" "$size")
+    done < <(ls /dev/disk/by-id/ | grep -v -E 'part[0-9]+$')
+
+    if has_tui; then
+        whiptail --title "$title" --menu "$text" 20 78 10 "${menu_items[@]}" 3>&1 1>&2 2>&3
+    else
+        echo "Available disks:" >&2
+        local i=1
+        for ((j=0; j<${#menu_items[@]}; j+=2)); do
+            echo "  $i) ${menu_items[j]} (${menu_items[j+1]})" >&2
+            ((i++))
+        done
+        read -rp "Select disk number: " num
+        echo "${menu_items[(num-1)*2]}"
+    fi
+}
+
+tui_progress() {
+    local title="$1" text="$2" percent="$3"
+    if has_tui; then
+        echo -e "XXX\n$percent\n$text\nXXX"
+    else
+        printf "\r[%-50s] %d%% %s" "$(printf '#%.0s' $(seq 1 $((percent/2))))" "$percent" "$text"
+    fi
+}
+
+gather_config() {
+    msg header "Configuration"
+
+    # Install type
+    INSTALL_TYPE=$(tui_menu "Installation Type" "Choose installation type:" \
+        "first" "Fresh install (wipes disk)" \
+        "dualboot" "Add to existing ZFS pool")
+
+    # Disk selection
+    local disk_id
+    disk_id=$(tui_disk_menu "Disk Selection" "Select installation disk:")
+    DISK="/dev/disk/by-id/$disk_id"
+
+    [[ -b "$DISK" ]] || die "Invalid disk: $DISK"
+
+    # Hostname
+    while true; do
+        HOSTNAME=$(tui_input "Hostname" "Enter hostname for this machine:")
+        [[ -n "$HOSTNAME" && "$HOSTNAME" =~ ^[a-zA-Z][a-zA-Z0-9-]*$ ]] && break
+        tui_msg "Error" "Invalid hostname. Use letters, numbers, hyphens. Start with a letter."
+    done
+
+    # Locale settings
+    KEYMAP=$(tui_input "Keymap" "Keyboard layout:" "us")
+    LOCALE=$(tui_input "Locale" "System locale:" "en_US.UTF-8")
+
+    # Dataset name
+    ROOT_DATASET=$(tui_input "ZFS Dataset" "Name for root dataset:" "root")
+
+    # User account
+    while true; do
+        USERNAME=$(tui_input "User Account" "Username for your account:")
+        [[ -n "$USERNAME" && "$USERNAME" =~ ^[a-z_][a-z0-9_-]*$ ]] && break
+        tui_msg "Error" "Invalid username. Lowercase letters, numbers, underscores, hyphens."
+    done
+
+    # Passwords
+    while true; do
+        PASSWORD=$(tui_password "User Password" "Password for $USERNAME:")
+        local pass2
+        pass2=$(tui_password "Confirm Password" "Confirm password:")
+        [[ "$PASSWORD" == "$pass2" ]] && break
+        tui_msg "Error" "Passwords don't match"
+    done
+
+    while true; do
+        ROOTPASS=$(tui_password "Root Password" "Root password:")
+        local pass2
+        pass2=$(tui_password "Confirm Password" "Confirm root password:")
+        [[ "$ROOTPASS" == "$pass2" ]] && break
+        tui_msg "Error" "Passwords don't match"
+    done
+
+    while true; do
+        ZFSPASS=$(tui_password "ZFS Encryption" "ZFS encryption passphrase (8+ chars):")
+        [[ ${#ZFSPASS} -ge 8 ]] || { tui_msg "Error" "Passphrase must be at least 8 characters"; continue; }
+        local pass2
+        pass2=$(tui_password "Confirm Passphrase" "Confirm ZFS passphrase:")
+        [[ "$ZFSPASS" == "$pass2" ]] && break
+        tui_msg "Error" "Passphrases don't match"
+    done
+
+    # Confirm
+    local summary="Installation Summary:
+
+Disk: $DISK
+Hostname: $HOSTNAME
+Username: $USERNAME
+Keymap: $KEYMAP
+Locale: $LOCALE
+Dataset: $ROOT_DATASET
+Type: $INSTALL_TYPE
+
+THIS WILL DESTROY ALL DATA ON THE SELECTED DISK!"
+
+    tui_yesno "Confirm Installation" "$summary" || die "Installation cancelled"
+}
+
+setup_archzfs() {
+    msg header "Setting up ZFS"
+
+    if pacman -Sl archzfs &>/dev/null; then
+        msg ok "archzfs repo already configured"
+        return 0
+    fi
+
+    msg info "Adding archzfs repository..."
+    pacman -Syy archlinux-keyring --needed --noconfirm >/dev/null
+    pacman-key --populate archlinux >/dev/null
+
+    local archzfs_key="3A9917BF0DED5C13F69AC68FABEC0A1208037BE9"
+
+    pacman-key --init
+
+    msg info "Importing archzfs GPG key..."
+    curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x${archzfs_key}" | pacman-key -a - \
+        || die "Failed to import archzfs GPG key"
+    pacman-key --lsign-key "$archzfs_key"
+    msg ok "Key imported"
+
+    cat >> /etc/pacman.conf <<'EOF'
+[archzfs]
+SigLevel = Required
+Server = https://github.com/archzfs/archzfs/releases/download/experimental
+EOF
+
+    pacman -Sy >/dev/null
+    msg ok "archzfs repository added"
+}
+
+install_zfs() {
+    msg info "Installing ZFS..."
+
+    local kernel_ver
+    kernel_ver=$(uname -r)
+    msg info "Kernel version: $kernel_ver"
+
+    # Try prebuilt zfs-linux package first
+    if pacman -S zfs-linux --noconfirm >/dev/null 2>&1; then
+        msg ok "ZFS installed from prebuilt package"
+        return 0
+    fi
+
+    # Fall back to DKMS
+    msg warn "No prebuilt package available, falling back to DKMS..."
+
+    pacman -Syyuu --needed --noconfirm >/dev/null
+    pacman -S --needed --noconfirm base-devel linux-headers git >/dev/null
+    pacman -S zfs-dkms --needed --noconfirm >/dev/null
+
+    msg ok "ZFS installed via DKMS"
+}
+
+load_zfs() {
+    if ! lsmod | grep -q ^zfs; then
+        modprobe zfs || die "Failed to load ZFS module"
+    fi
+    msg ok "ZFS module loaded"
+}
+
+wipe_disk() {
+    if ! tui_yesno "Confirm Wipe" "Wipe all data on $DISK?"; then
+        return 0
+    fi
+
+    msg info "Wiping disk..."
+    dd if=/dev/zero of="$DISK" bs=512 count=1 conv=notrunc 2>/dev/null
+    wipefs -af "$DISK" >/dev/null
+    sgdisk -Zo "$DISK" >/dev/null
+    msg ok "Disk wiped"
+}
+
+partition_disk() {
+    msg header "Partitioning"
+
+    msg info "Creating EFI partition..."
+    sgdisk -n1:1M:+512M -t1:EF00 "$DISK" >/dev/null
+
+    msg info "Creating ZFS partition..."
+    sgdisk -n3:0:0 -t3:bf01 "$DISK" >/dev/null
+
+    partprobe "$DISK"
+    sleep 2
+
+    msg info "Formatting EFI partition..."
+    mkfs.vfat -F32 "${DISK}-part1" >/dev/null
+
+    msg ok "Partitioning complete"
+}
+
+create_zfs_pool() {
+    msg header "Creating ZFS Pool"
+
+    msg info "Setting up encryption key..."
+    mkdir -p /etc/zfs
+    echo "$ZFSPASS" > /etc/zfs/zroot.key
+    chmod 000 /etc/zfs/zroot.key
+
+    msg info "Creating encrypted pool..."
+    zpool create -f -o ashift=12 \
+        -o autotrim=on \
+        -O acltype=posixacl \
+        -O compression=zstd \
+        -O relatime=on \
+        -O xattr=sa \
+        -O dnodesize=legacy \
+        -O encryption=aes-256-gcm \
+        -O keyformat=passphrase \
+        -O keylocation=file:///etc/zfs/zroot.key \
+        -O normalization=formD \
+        -O mountpoint=none \
+        -O canmount=off \
+        -O devices=off \
+        -R /mnt \
+        zroot "${DISK}-part3"
+
+    msg ok "ZFS pool created"
+}
+
+create_datasets() {
+    msg info "Creating datasets..."
+
+    # Root container
+    zfs create -o mountpoint=none zroot/ROOT
+    zfs set org.zfsbootmenu:commandline="ro quiet" zroot/ROOT
+
+    # System dataset
+    zfs create -o mountpoint=/ -o canmount=noauto "zroot/ROOT/$ROOT_DATASET"
+
+    zgenhostid
+    zpool set bootfs="zroot/ROOT/$ROOT_DATASET" zroot
+    zfs mount "zroot/ROOT/$ROOT_DATASET"
+
+    # Home
+    if [[ "$INSTALL_TYPE" == "first" ]]; then
+        zfs create -o mountpoint=/ -o canmount=off zroot/data
+        zfs create zroot/data/home
+    fi
+
+    msg ok "Datasets created"
+}
+
+export_import_pool() {
+    msg info "Re-importing pool..."
+    zpool export zroot
+    zpool import -d /dev/disk/by-id -R /mnt zroot -N -f
+    zfs load-key zroot
+    zfs mount "zroot/ROOT/$ROOT_DATASET"
+    zfs mount -a
+
+    mkdir -p /mnt/efi
+    mount "${DISK}-part1" /mnt/efi
+
+    mkdir -p /mnt/etc/zfs
+    zpool set cachefile=/etc/zfs/zpool.cache zroot
+
+    msg ok "Pool mounted"
+}
+
+setup_mirrors() {
+    msg header "Setting Up Mirrors"
+
+    msg info "Finding fastest mirrors for your location..."
+
+    # Install reflector if not available
+    if ! command -v reflector &>/dev/null; then
+        pacman -Sy --noconfirm reflector >/dev/null 2>&1 || true
+    fi
+
+    if command -v reflector &>/dev/null; then
+        # Use reflector to get the best mirrors based on location
+        # --latest 20: use the 20 most recently synchronized mirrors
+        # --protocol https: only use HTTPS mirrors
+        # --sort rate: sort by download speed
+        reflector --latest 20 --protocol https --sort rate --save /etc/pacman.d/mirrorlist 2>/dev/null || {
+            msg warn "Reflector failed, trying with country detection..."
+            # Try to detect country from IP geolocation and use that
+            local country
+            country=$(curl -s --max-time 5 "https://ipapi.co/country_name" 2>/dev/null || echo "")
+            if [[ -n "$country" && "$country" != "Undefined" ]]; then
+                msg info "Detected country: $country"
+                reflector --country "$country" --latest 10 --protocol https --sort rate --save /etc/pacman.d/mirrorlist 2>/dev/null || {
+                    msg warn "Country-specific mirror fetch failed, using worldwide mirrors..."
+                    reflector --latest 10 --protocol https --sort rate --save /etc/pacman.d/mirrorlist 2>/dev/null || true
+                }
+            else
+                reflector --latest 10 --protocol https --sort rate --save /etc/pacman.d/mirrorlist 2>/dev/null || true
+            fi
+        }
+        msg ok "Mirrors configured via reflector"
+    else
+        msg warn "Reflector not available, using default mirrors"
+    fi
+
+    # Verify we have valid mirrors
+    if [[ ! -s /etc/pacman.d/mirrorlist ]] || ! grep -q "^Server" /etc/pacman.d/mirrorlist; then
+        msg warn "No valid mirrors found, using Arch Linux default"
+        cat > /etc/pacman.d/mirrorlist <<'EOF'
+Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch
+Server = https://mirror.rackspace.com/archlinux/$repo/os/$arch
+Server = https://mirrors.kernel.org/archlinux/$repo/os/$arch
+EOF
+    fi
+
+    # Refresh package databases with new mirrors
+    pacman -Syy >/dev/null 2>&1 || true
+}
+
+install_base() {
+    msg header "Installing Base System"
+
+    msg info "Ensuring mirrors are up to date..."
+
+    msg info "Installing packages (this takes a while)..."
+
+    # Detect CPU vendor for microcode
+    local ucode=""
+    if grep -q "GenuineIntel" /proc/cpuinfo; then
+        ucode="intel-ucode"
+    elif grep -q "AuthenticAMD" /proc/cpuinfo; then
+        ucode="amd-ucode"
+    fi
+
+    pacstrap /mnt \
+        base base-devel \
+        linux-lts linux-lts-headers linux-firmware \
+        $ucode \
+        efibootmgr \
+        vim git openssh \
+        iwd wpa_supplicant \
+        rsync \
+        arse-desktop 2>/dev/null || pacstrap /mnt \
+        base base-devel \
+        linux-lts linux-lts-headers linux-firmware \
+        $ucode \
+        efibootmgr \
+        vim git openssh \
+        iwd wpa_supplicant \
+        rsync
+
+    # Copy the live system's mirrorlist to the installed system
+    msg info "Copying mirrorlist to installed system..."
+    cp /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/mirrorlist
+
+    msg ok "Base system installed"
+}
+
+configure_system() {
+    msg header "Configuring System"
+
+    # fstab (excluding ZFS)
+    msg info "Generating fstab..."
+    genfstab -U /mnt | grep -v "zroot" | tr -s '\n' | sed 's/\/mnt//' > /mnt/etc/fstab
+
+    # Hostname
+    echo "$HOSTNAME" > /mnt/etc/hostname
+    cat > /mnt/etc/hosts <<EOF
+127.0.0.1   localhost $HOSTNAME
+::1         localhost $HOSTNAME
+EOF
+
+    # Locale
+    msg info "Setting up locale..."
+    echo "KEYMAP=$KEYMAP" > /mnt/etc/vconsole.conf
+    sed -i "/$LOCALE/s/^#//g" /mnt/etc/locale.gen
+    echo "LANG=$LOCALE" > /mnt/etc/locale.conf
+
+    # Initramfs
+    msg info "Configuring initramfs..."
+
+    # Detect if we need Intel graphics modules
+    local gfx_modules=""
+    if lspci | grep -qi "intel.*graphics"; then
+        gfx_modules="i915 intel_agp"
+    fi
+
+    cat > /mnt/etc/mkinitcpio.conf <<EOF
+MODULES=($gfx_modules)
+BINARIES=()
+FILES=(/etc/zfs/zroot.key)
+HOOKS=(base udev autodetect modconf block keyboard keymap zfs filesystems)
+COMPRESSION="zstd"
+EOF
+
+    cat > /mnt/etc/mkinitcpio.d/linux-lts.preset <<'EOF'
+ALL_config="/etc/mkinitcpio.conf"
+ALL_kver="/boot/vmlinuz-linux-lts"
+PRESETS=('default')
+default_image="/boot/initramfs-linux-lts.img"
+EOF
+
+    # Copy ZFS files
+    msg info "Copying ZFS configuration..."
+    cp /etc/hostid /mnt/etc/hostid
+    cp /etc/zfs/zpool.cache /mnt/etc/zfs/zpool.cache
+    cp /etc/zfs/zroot.key /mnt/etc/zfs/
+    chmod 000 /mnt/etc/zfs/zroot.key
+
+    msg ok "System configured"
+}
+
+setup_chroot() {
+    msg header "Chroot Configuration"
+
+    # Create user's home dataset before creating the user
+    msg info "Creating ZFS dataset for $USERNAME..."
+    zfs create "zroot/data/home/$USERNAME"
+
+    arch-chroot /mnt /bin/bash -e <<CHROOT
+# Keyring setup
+rm -rf /etc/pacman.d/gnupg
+pacman-key --init
+pacman-key --populate archlinux
+
+# Import archzfs GPG key
+archzfs_key="3A9917BF0DED5C13F69AC68FABEC0A1208037BE9"
+curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x\${archzfs_key}" | pacman-key -a - || exit 1
+pacman-key --lsign-key "\$archzfs_key"
+pacman -S archlinux-keyring --noconfirm
+
+# Add repos
+cat >> /etc/pacman.conf <<'PACCONF'
+[archzfs]
+SigLevel = Required
+Server = https://github.com/archzfs/archzfs/releases/download/experimental
+[arse-repo]
+SigLevel = Never
+Server = https://github.com/ArseLinuxOS-Development/arselinux-repo/releases/download/arselinux
+PACCONF
+
+# Try prebuilt zfs-linux-lts first, fall back to DKMS
+if ! pacman -S --noconfirm zfs-linux-lts zfs-utils 2>/dev/null; then
+    echo "No prebuilt ZFS package available, falling back to DKMS..."
+    pacman -Syu --noconfirm zfs-dkms zfs-utils
+fi
+
+# Time and locale
+hwclock --systohc
+locale-gen
+
+# Initramfs
+mkinitcpio -P
+
+# ZFSBootMenu
+git clone --depth=1 https://github.com/zbm-dev/zfsbootmenu/ /tmp/zfsbootmenu
+pacman -S cpanminus kexec-tools fzf util-linux --noconfirm
+cd /tmp/zfsbootmenu
+make
+make install
+cpanm --notest --installdeps .
+
+# Create user
+useradd -m -G wheel $USERNAME
+chown -R $USERNAME:$USERNAME /home/$USERNAME
+CHROOT
+
+    # Set passwords
+    msg info "Setting passwords..."
+    echo -e "$ROOTPASS\n$ROOTPASS" | arch-chroot /mnt passwd
+    echo "$USERNAME:$PASSWORD" | arch-chroot /mnt chpasswd
+
+    # Sudo
+    cat > /mnt/etc/sudoers <<EOF
+root ALL=(ALL:ALL) ALL
+%wheel ALL=(ALL:ALL) ALL
+Defaults rootpw
+EOF
+    chmod 440 /mnt/etc/sudoers
+
+    msg ok "Chroot configuration complete"
+}
+
+install_desktop() {
+    msg header "Installing Desktop Environment"
+
+    pacstrap /mnt \
+        sway swaylock swaybg swayidle waybar wofi mako \
+        xorg-xwayland \
+        ttf-dejavu ttf-hack \
+        alacritty \
+        wl-clipboard grim slurp \
+        greetd greetd-tuigreet \
+        eza fd ripgrep fzf 2>/dev/null || msg warn "Some desktop packages unavailable"
+
+    # Try arse-specific packages
+    pacstrap /mnt arse-hooks arse-desktop 2>/dev/null || true
+
+    # Enable greetd
+    systemctl enable greetd --root=/mnt 2>/dev/null || true
+
+    # Configure greetd for sway
+    mkdir -p /mnt/etc/greetd
+    cat > /mnt/etc/greetd/config.toml <<'GREETD'
+[terminal]
+vt = 1
+
+[default_session]
+command = "tuigreet --time --cmd sway"
+user = "greeter"
+GREETD
+
+    msg ok "Desktop installed"
+}
+
+setup_networking() {
+    msg info "Configuring network..."
+
+    cat > /mnt/etc/systemd/network/20-wired.network <<'EOF'
+[Match]
+Name=en*
+
+[Network]
+DHCP=ipv4
+IPForward=yes
+
+[DHCP]
+UseDNS=no
+RouteMetric=10
+EOF
+
+    cat > /mnt/etc/systemd/network/25-wireless.network <<'EOF'
+[Match]
+Name=wl*
+
+[Network]
+DHCP=ipv4
+IPForward=yes
+
+[DHCP]
+UseDNS=no
+RouteMetric=20
+EOF
+
+    systemctl enable systemd-networkd --root=/mnt
+    systemctl disable systemd-networkd-wait-online --root=/mnt 2>/dev/null || true
+
+    mkdir -p /mnt/etc/iwd
+    cat > /mnt/etc/iwd/main.conf <<'EOF'
+[General]
+UseDefaultInterface=true
+EnableNetworkConfiguration=true
+EOF
+    systemctl enable iwd --root=/mnt
+
+    # DNS
+    rm -f /mnt/etc/resolv.conf
+    ln -sf /run/systemd/resolve/resolv.conf /mnt/etc/resolv.conf
+    sed -i 's/^#DNS=.*/DNS=1.1.1.1/' /mnt/etc/systemd/resolved.conf
+    systemctl enable systemd-resolved --root=/mnt
+
+    msg ok "Networking configured"
+}
+
+setup_zfs_services() {
+    msg info "Enabling ZFS services..."
+
+    systemctl enable zfs-import-cache --root=/mnt
+    systemctl enable zfs-mount --root=/mnt
+    systemctl enable zfs-import.target --root=/mnt
+    systemctl enable zfs.target --root=/mnt
+
+    mkdir -p /mnt/etc/zfs/zfs-list.cache
+    touch /mnt/etc/zfs/zfs-list.cache/zroot
+    zfs list -H -o name,mountpoint,canmount,atime,relatime,devices,exec,readonly,setuid,nbmand \
+        | sed 's|/mnt||' > /mnt/etc/zfs/zfs-list.cache/zroot
+    systemctl enable zfs-zed.service --root=/mnt
+
+    msg ok "ZFS services enabled"
+}
+
+setup_bootloader() {
+    msg header "Bootloader Setup"
+
+    mkdir -p /mnt/efi/EFI/ZBM
+
+    cat > /mnt/etc/zfsbootmenu/mkinitcpio.conf <<'EOF'
+MODULES=()
+BINARIES=()
+FILES=()
+HOOKS=(base udev autodetect modconf block keyboard keymap)
+COMPRESSION="zstd"
+EOF
+
+    cat > /mnt/etc/zfsbootmenu/config.yaml <<EOF
+Global:
+  ManageImages: true
+  BootMountPoint: /efi
+  InitCPIO: true
+Components:
+  Enabled: false
+EFI:
+  ImageDir: /efi/EFI/ZBM
+  Versions: false
+  Enabled: true
+Kernel:
+  CommandLine: ro quiet loglevel=0 zbm.import_policy=hostid
+  Prefix: vmlinuz
+EOF
+
+    zfs set org.zfsbootmenu:commandline="rw quiet nowatchdog rd.vconsole.keymap=$KEYMAP" "zroot/ROOT/$ROOT_DATASET"
+
+    msg info "Generating ZFSBootMenu..."
+    arch-chroot /mnt /bin/bash -e <<'CHROOT'
+export LANG="en_US.UTF-8"
+generate-zbm
+CHROOT
+
+    msg info "Creating EFI boot entries..."
+    if ! efibootmgr | grep -q ZFSBootMenu; then
+        efibootmgr --disk "$DISK" --part 1 --create \
+            --label "ZFSBootMenu Backup" \
+            --loader '\EFI\ZBM\vmlinuz-backup.efi' \
+            --quiet
+        efibootmgr --disk "$DISK" --part 1 --create \
+            --label "ZFSBootMenu" \
+            --loader '\EFI\ZBM\vmlinuz.efi' \
+            --quiet
+    fi
+
+    msg ok "Bootloader configured"
+}
+
+finish_install() {
+    msg header "Finishing Up"
+
+    msg info "Unmounting filesystems..."
+    umount /mnt/efi
+    zfs umount -a
+
+    msg info "Exporting ZFS pool..."
+    zpool export zroot
+
+    echo
+    msg ok "Installation complete!"
+    echo
+    echo -e "${GREEN}You can now reboot into your new system.${NC}"
+    echo -e "Default boot entry: ${BOLD}ZFSBootMenu${NC}"
+    echo
+}
+
+# Entry point
+main() {
+    clear
+    echo -e "${BOLD}"
+    cat <<'BANNER'
+    _                _     _
+   / \   _ __ ___  | |   (_)_ __  _   ___  __
+  / _ \ | '__/ __| | |   | | '_ \| | | \ \/ /
+ / ___ \| |  \__ \ | |___| | | | | |_| |>  <
+/_/   \_\_|  |___/ |_____|_|_| |_|\__,_/_/\_\
+
+BANNER
+    echo -e "${NC}"
+    echo -e "ZFS-based Arch Linux Installer\n"
+
+    check_root
+    check_archiso
+    check_uefi
+    check_network
+
+    msg ok "Pre-flight checks passed"
+
+    # Bump cowspace
+    mount -o remount,size=50% /run/archiso/cowspace 2>/dev/null || true
+
+    gather_config
+    setup_mirrors
+    setup_archzfs
+    install_zfs
+    load_zfs
+
+    if [[ "$INSTALL_TYPE" == "first" ]]; then
+        wipe_disk
+        partition_disk
+        create_zfs_pool
+    else
+        # Import existing pool
+        zpool import -d /dev/disk/by-id -R /mnt zroot -N -f
+        zfs load-key zroot
+    fi
+
+    create_datasets
+    export_import_pool
+
+    install_base
+    configure_system
+    setup_chroot
+    install_desktop
+    setup_networking
+    setup_zfs_services
+    setup_bootloader
+    finish_install
+}
+
+main "$@"
