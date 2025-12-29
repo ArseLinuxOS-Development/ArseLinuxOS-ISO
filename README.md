@@ -10,7 +10,7 @@ Based on Arch Linux with a modified archiso. This project is for fun and isn't m
 
 ## Features
 
-- i3-wm with Polybar
+- Sway with Waybar (Wayland)
 - ZFS on root with encryption
 - ZFSBootMenu bootloader
 - TUI installer

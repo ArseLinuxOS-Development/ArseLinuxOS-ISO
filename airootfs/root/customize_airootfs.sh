@@ -44,6 +44,9 @@ EOF
 # Set greetd as display-manager
 ln -sf /usr/lib/systemd/system/greetd.service /etc/systemd/system/display-manager.service
 
+# Set graphical.target as default so greetd/display-manager starts on boot
+systemctl set-default graphical.target
+
 # Create autologin group
 # add root to autologin group for live session
 groupadd -r autologin 2>/dev/null || true
